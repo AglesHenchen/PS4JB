@@ -1,137 +1,47 @@
 <!doctype html>
 <html lang="en" manifest="cache.appcache">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>afterglow</title>
-    <!-- This page carries its own styles and starts its own module, and it
-         loads NOTHING else. That duplicates a little of style.css, and it is
-         deliberate: every subresource is one more allocation and one more
-         timing shift in the process that core.js is about to groom, and this
-         exploit is decided by exactly that. The landing page may use the
-         shared stylesheet; this one may not. -->
-    <style>
-      :root {
-        --bg: #0b0d10;
-        --panel: #0e1116;
-        --sunk: #11151b;
-        --line: #1e2732;
-        --fg: #c8ced8;
-        --bright: #e6ebf2;
-        --dim: #7c8798;
-        --faint: #4d5765;
-        --ok: #7fd0a0;
-        --bad: #d08a7f;
-        --warn: #d8c07f;
-        --sans: "Segoe UI", system-ui, sans-serif;
-        --mono: Consolas, "DejaVu Sans Mono", monospace;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        min-height: 100%;
-        background: var(--bg);
-        color: var(--fg);
-        font: 15px/1.45 var(--sans);
-      }
-      #brand {
-        padding: 8px 10px;
-        border-bottom: 1px solid var(--line);
-        background: var(--panel);
-        text-align: center;
-      }
-      #brand b {
-        color: var(--bright);
-        font-size: 15px;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-      }
-/* The same indicator spins during loading and becomes a green check on success. */
-#spin {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 96px;
-  height: 96px;
-  margin: -48px 0 0 -48px;
-  border: 7px solid #1e2732;
-  border-top-color: #43d17a;
-  border-radius: 50%;
-  animation: spin 0.9s linear infinite;
-}
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jailbreak</title>
+  <!-- Keep run-page styles inline; completion icons are requested only on success. -->
+  <style>
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: #0b0d10; color: #fff; font: 18px/1.5 "Segoe UI", Arial, sans-serif; }
+.center { position: fixed; top: 50%; left: 0; width: 100%; transform: translateY(-50%); text-align: center; padding: 24px; }
+.indicator { position: relative; width: 144px; height: 144px; margin: 0 auto; }
+.ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 5px solid #263442; border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-body.done #spin {
-  animation: none;
-  border-color: #43d17a;
-  background: #43d17a;
-}
-body.done #spin::after {
-  content: "";
-  position: absolute;
-  left: 29px;
-  top: 16px;
-  width: 22px;
-  height: 40px;
-  border: solid #fff;
-  border-width: 0 6px 6px 0;
-  transform: rotate(45deg);
-}
-#ramBox, #wrap, #state, #out { display: none; }
-#msg { display: none; }
-body.fail #spin { display: none; }
-body.fail #msg {
-  display: block;
-  position: fixed;
-  top: 50%;
-  left: 0;
-  right: 0;
-  transform: translateY(-50%);
-  padding: 24px;
-  text-align: center;
-  color: #d08a7f;
-  font-size: 18px;
-}
-
-      .byline {
-        position: fixed;
-        bottom: 9px;
-        left: 11px;
-        margin: 0;
-        color: var(--faint);
-        font: 11px/1 var(--mono);
-        letter-spacing: 0.06em;
-      }
-      .ok {
-        color: var(--ok);
-      }
-      .bad {
-        color: var(--bad);
-      }
-      .warn {
-        color: var(--warn);
-      }
-      code {
-        color: #9fb3d0;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Diagnostic nodes remain hidden for compatibility with jb.js. -->
-    <div id="brand"><b>afterglow</b></div>
-    <div id="ramBox">RAM: checking...</div>
-    <div id="spin" role="status" aria-label="Desbloqueio em andamento"></div>
-    <div id="msg">Restart your console</div>
-    <div id="wrap">
-      <div id="state"></div>
-      <div id="out"></div>
+.web-icon { position: absolute; width: 84px; height: 84px; top: 30px; left: 30px; object-fit: contain; }
+.caption { margin: 26px 0 0; font-size: 20px; letter-spacing: 0.03em; }
+#padlock { display: none; position: absolute; width: 100px; height: 100px; top: 22px; left: 22px; background: center / contain no-repeat; }
+#exit { display: none; }
+.ps-button { display: inline-block; width: 40px; height: 40px; margin: 0 8px; vertical-align: middle; background: center / contain no-repeat; }
+body.done .ring { animation: none; border-color: #fff; }
+body.done #padlock { display: block; background-image: url("assets/padlock.png"); }
+body.done #exit { display: block; }
+body.done .ps-button { background-image: url("assets/psButton.png"); }
+#ramBox, #wrap, #state, #out, #msg { display: none; }
+body.fail .indicator { display: none; }
+body.fail #exit { display: none; }
+body.fail #msg { display: block; color: #efaaa2; text-align: center; padding: 24px; position: fixed; top: 50%; left: 0; width: 100%; transform: translateY(-50%); }
+body.cache-error .ring { animation: none; border-color: #efaaa2; }
+body.cache-error .caption { color: #efaaa2; }
+.byline { position: fixed; bottom: 9px; left: 11px; margin: 0; color: #4d5765; font: 11px/1 Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <main class="center">
+    <div class="indicator" id="spin" role="status" aria-label="Desbloqueio em andamento">
+      <div class="ring" aria-hidden="true"></div>
+      <span id="padlock" aria-hidden="true"></span>
     </div>
-    <p class="byline">by well0nez/m0zz</p>
-    <script type="module">
-      import "./jb.js";
-    </script>
-  </body>
+    <p class="caption" id="exit">Press <span class="ps-button" role="img" aria-label="PS button"></span> to exit</p>
+  </main>
+  <div id="ramBox"></div>
+  <div id="msg">Restart your console</div>
+  <div id="wrap"><div id="state"></div><div id="out"></div></div>
+  <p class="byline">by well0nez/m0zz</p>
+  <script type="module">import "./jb.js";</script>
+</body>
 </html>
